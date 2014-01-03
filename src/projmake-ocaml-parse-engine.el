@@ -30,7 +30,8 @@
   file
   type
   (line 0)
-  char
+  start-char
+  end-char
   (residual "")
   (text ""))
 
@@ -81,14 +82,22 @@ going to be the unparsed remainder."
       (let* ((file (match-string 1 line))
              (line-number (match-string 2 line))
              (raw-char (match-string 3 line))
-             (char (if (string-match "^\\([0-9]+\\)-[0-9]+$" raw-char)
-                       (match-string 1 raw-char)
-                     raw-char)))
+             (start-char "0")
+             (end-char "0"))
+        (if (string-match "^\\([0-9]+\\)-\\([0-9]+\\)$" raw-char)
+            (progn
+              (setf start-char (match-string 1 raw-char))
+              (setf end-char (match-string 2 raw-char)))
+          (setf start-char raw-char))
+          (message "--X->%s"
+                   (list raw-char start-char end-char))
         (setf (projmake-ocaml-state-file state) file)
         (setf (projmake-ocaml-state-line state)
               (string-to-number line-number))
-        (setf (projmake-ocaml-state-char state)
-              (string-to-number char))
+        (setf (projmake-ocaml-state-start-char state)
+              (string-to-number start-char))
+        (setf (projmake-ocaml-state-end-char state)
+              (string-to-number end-char))
         (setf (projmake-ocaml-state-current-state state) 'body-start)
         nil)
     nil))
@@ -103,12 +112,15 @@ going to be the unparsed remainder."
                 :file (projmake-ocaml-state-file state)
                 :line (projmake-ocaml-state-line state)
                 :type (projmake-ocaml-state-type state)
+                :char (projmake-ocaml-state-start-char state)
+                :end-char (projmake-ocaml-state-end-char state)
                 :text (projmake-ocaml-state-text state))))
       (setf (projmake-ocaml-state-current-state state) 'initial)
       (setf (projmake-ocaml-state-type state) "e")
       (setf (projmake-ocaml-state-file state) nil)
       (setf (projmake-ocaml-state-line state) nil)
-      (setf (projmake-ocaml-state-char state) nil)
+      (setf (projmake-ocaml-state-start-char state) nil)
+      (setf (projmake-ocaml-state-end-char state) nil)
       (setf (projmake-ocaml-state-text state) "")
       err)))
 
